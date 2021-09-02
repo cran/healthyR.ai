@@ -10,7 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+<meta name="author" content="Steven P. Sanderson II, MPH" />
 
+<meta name="date" content="2021-09-02" />
 
 <title>Getting Started with healthyR.ai</title>
 
@@ -138,15 +140,315 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 <h1 class="title toc-ignore">Getting Started with healthyR.ai</h1>
+<h3 class="subtitle">A Quick Introduction</h3>
+<h4 class="author">Steven P. Sanderson II, MPH</h4>
+<h4 class="date">2021-09-02</h4>
 
 
+<div id="TOC">
+<ul>
+<li><a href="#libraries">Libraries</a></li>
+<li><a href="#data">Data</a>
+<ul>
+<li><a href="#data-set">Data Set</a></li>
+<li><a href="#splits">Splits</a></li>
+<li><a href="#initial-recipe">Initial Recipe</a></li>
+</ul></li>
+<li><a href="#inspect-pca-output">Inspect PCA Output</a>
+<ul>
+<li><a href="#pca-transform">PCA Transform</a></li>
+<li><a href="#variable-loadings">Variable Loadings</a></li>
+<li><a href="#variable-variance">Variable Variance</a></li>
+<li><a href="#pca-estimates">PCA Estimates</a></li>
+<li><a href="#jucied-and-baked-data">Jucied and Baked Data</a></li>
+<li><a href="#roatation-data">Roatation Data</a></li>
+<li><a href="#variance-and-scree-plot">Variance and Scree Plot</a></li>
+</ul></li>
+</ul>
+</div>
 
+<p>First of all, thank you for using <code>healthyR.ai</code>. If you encounter issues or want to make a feature request, please visit <a href="https://github.com/spsanderson/healthyR.ai/issues" class="uri">https://github.com/spsanderson/healthyR.ai/issues</a></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(healthyR.ai)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; == Welcome to healthyR.ai ======================================================</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; If you find this package useful, please leave a star: https://github.com/spsanderson/healthyR.ai</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; If you encounter a bug or want to request an enhancement please file an issue at:</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    https://github.com/spsanderson/healthyR.ai/issues</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Thank you for using healthyR.ai!</span></span></code></pre></div>
+<p>In this should example we will showcase the <code>pca_your_recipe()</code> function. This function takes only a few arguments. The arguments are currently <code>.data</code> which is the full data set that gets passed internally to the <code>recipes::bake()</code> function, <code>.recipe_object</code> which is a recipe you have already made and want to pass to the function in order to perform the pca, and finally <code>.threshold</code> which is the fraction of the variance that should be captured by the components.</p>
+<p>To start this walk through we will first load in a few libraries.</p>
+<div id="libraries" class="section level1">
+<h1>Libraries</h1>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(timetk))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(dplyr))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(purrr))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(healthyR.data))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(rsample))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(recipes))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(ggplot2))</span></code></pre></div>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<p>Now that we have out libraries we can go ahead and get our data set ready.</p>
+<div id="data-set" class="section level2">
+<h2>Data Set</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_tbl <span class="ot">&lt;-</span> healthyR_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(visit_end_date_time) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise_by_time</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">.date_var =</span> visit_end_date_time,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">.by       =</span> <span class="st">&quot;month&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">value     =</span> <span class="fu">n</span>()</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set_names</span>(<span class="st">&quot;date_col&quot;</span>,<span class="st">&quot;value&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter_by_time</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">.date_var =</span> date_col,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">.start_date =</span> <span class="st">&quot;2013&quot;</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">.end_date =</span> <span class="st">&quot;2020&quot;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data_tbl)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 x 2</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   date_col            value</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;dttm&gt;              &lt;int&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 2013-01-01 00:00:00  2082</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 2013-02-01 00:00:00  1719</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 2013-03-01 00:00:00  1796</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 2013-04-01 00:00:00  1865</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 2013-05-01 00:00:00  2028</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 2013-06-01 00:00:00  1813</span></span></code></pre></div>
+<p>The data set is simple and by itself would not be at all useful for a pca analysis since there is only one predictor, being time. In order to facilitate the use of the function and this example, we will create a <code>splits</code> object and a <code>recipe</code> object.</p>
+</div>
+<div id="splits" class="section level2">
+<h2>Splits</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>splits <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(<span class="at">data =</span> data_tbl, <span class="at">prop =</span> <span class="fl">0.8</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>splits</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;Analysis/Assess/Total&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &lt;76/19/95&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">training</span>(splits))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 x 2</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   date_col            value</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;dttm&gt;              &lt;int&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 2018-03-01 00:00:00  1618</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 2020-08-01 00:00:00  1140</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 2017-12-01 00:00:00  1530</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 2015-10-01 00:00:00  1641</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 2017-11-01 00:00:00  1530</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 2015-12-01 00:00:00  1571</span></span></code></pre></div>
+</div>
+<div id="initial-recipe" class="section level2">
+<h2>Initial Recipe</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>rec_obj <span class="ot">&lt;-</span> <span class="fu">recipe</span>(value <span class="sc">~</span> ., <span class="fu">training</span>(splits)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">step_timeseries_signature</span>(date_col) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">step_rm</span>(<span class="fu">matches</span>(<span class="st">&quot;(iso$)|(xts$)|(hour)|(min)|(sec)|(am.pm)&quot;</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>rec_obj</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data Recipe</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Inputs:</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       role #variables</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    outcome          1</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  predictor          1</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Operations:</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Timeseries signature features from date_col</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Delete terms matches(&quot;(iso$)|(xts$)|(hour)|(min)|(sec)|(am.pm)&quot;)</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="fu">get_juiced_data</span>(rec_obj) <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 76</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 20</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col           &lt;dttm&gt; 2018-03-01, 2020-08-01, 2017-12-01, 2015-10-01, 20~</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ value              &lt;int&gt; 1618, 1140, 1530, 1641, 1530, 1571, 1343, 1609, 153~</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_index.num &lt;dbl&gt; 1519862400, 1596240000, 1512086400, 1443657600, 150~</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_year      &lt;int&gt; 2018, 2020, 2017, 2015, 2017, 2015, 2018, 2018, 201~</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_half      &lt;int&gt; 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 1, 2, 1, 2, ~</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_quarter   &lt;int&gt; 1, 3, 4, 4, 4, 4, 3, 3, 3, 2, 3, 2, 4, 1, 3, 2, 3, ~</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_month     &lt;int&gt; 3, 8, 12, 10, 11, 12, 9, 8, 7, 4, 9, 6, 10, 2, 7, 6~</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_month.lbl &lt;ord&gt; March, August, December, October, November, Decembe~</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_day       &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_wday      &lt;int&gt; 5, 7, 6, 5, 4, 3, 7, 4, 7, 7, 1, 2, 4, 5, 4, 2, 3, ~</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_wday.lbl  &lt;ord&gt; Thursday, Saturday, Friday, Thursday, Wednesday, Tu~</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_mday      &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_qday      &lt;int&gt; 60, 32, 62, 1, 32, 62, 63, 32, 1, 1, 63, 62, 1, 32,~</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_yday      &lt;int&gt; 60, 214, 335, 274, 305, 335, 244, 213, 182, 91, 244~</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_mweek     &lt;int&gt; 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 6, 6, ~</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_week      &lt;int&gt; 9, 31, 48, 40, 44, 48, 35, 31, 26, 13, 35, 22, 40, ~</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_week2     &lt;int&gt; 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, ~</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_week3     &lt;int&gt; 0, 1, 0, 1, 2, 0, 2, 1, 2, 1, 2, 1, 1, 2, 0, 1, 1, ~</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_week4     &lt;int&gt; 1, 3, 0, 0, 0, 0, 3, 3, 2, 1, 3, 2, 0, 1, 3, 2, 3, ~</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_mday7     &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~</span></span></code></pre></div>
+<p>Now that we have out initial recipe we can use the <code>pca_your_recipe()</code> function.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pca_list <span class="ot">&lt;-</span> <span class="fu">pca_your_recipe</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">.recipe_object =</span> rec_obj,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">.data          =</span> data_tbl,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">.threshold     =</span> <span class="fl">0.8</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Registered S3 method overwritten by &#39;quantmod&#39;:</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   method            from</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   as.zoo.data.frame zoo</span></span></code></pre></div>
+</div>
+</div>
+<div id="inspect-pca-output" class="section level1">
+<h1>Inspect PCA Output</h1>
+<p>The function returns a list object and does so <code>insvisible</code> so you must assign the output to a variable, you can then access the items of the list in the usual manner.</p>
+<p>The following items are included in the output of the function:</p>
+<ol style="list-style-type: decimal">
+<li>pca_transform - This is the pca recipe.</li>
+<li>variable_loadings</li>
+<li>variable_variance</li>
+<li>pca_estimates</li>
+<li>pca_juiced_estimates</li>
+<li>pca_baked_data</li>
+<li>pca_variance_df</li>
+<li>pca_variance_scree_plt</li>
+<li>pca_rotation_df</li>
+</ol>
+<p>Lets start going down the list of items.</p>
+<div id="pca-transform" class="section level2">
+<h2>PCA Transform</h2>
+<p>This is the portion you will want to output to a variable as this is the recipe object itself that you will use further down the line of your work.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pca_rec_obj <span class="ot">&lt;-</span> pca_list<span class="sc">$</span>pca_transform</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>pca_rec_obj</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data Recipe</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Inputs:</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       role #variables</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    outcome          1</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  predictor          1</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Operations:</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Timeseries signature features from date_col</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Delete terms matches(&quot;(iso$)|(xts$)|(hour)|(min)|(sec)|(am.pm)&quot;)</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Centering for recipes::all_numeric()</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scaling for recipes::all_numeric()</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Sparse, unbalanced variable filter on recipes::all_numeric()</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; No PCA components were extracted.</span></span></code></pre></div>
+</div>
+<div id="variable-loadings" class="section level2">
+<h2>Variable Loadings</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>variable_loadings</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 169 x 4</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    terms                value component id       </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;                &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;    </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 date_col_index.num -0.0322 PC1       pca_deuzL</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 date_col_year       0.0197 PC1       pca_deuzL</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 date_col_half      -0.388  PC1       pca_deuzL</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 date_col_quarter   -0.435  PC1       pca_deuzL</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 date_col_month     -0.437  PC1       pca_deuzL</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 date_col_wday      -0.0207 PC1       pca_deuzL</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 date_col_qday      -0.0387 PC1       pca_deuzL</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 date_col_yday      -0.437  PC1       pca_deuzL</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 date_col_mweek      0.0372 PC1       pca_deuzL</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 date_col_week      -0.438  PC1       pca_deuzL</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ... with 159 more rows</span></span></code></pre></div>
+</div>
+<div id="variable-variance" class="section level2">
+<h2>Variable Variance</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>variable_variance</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 52 x 4</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    terms       value component id       </span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt;       &lt;dbl&gt;     &lt;int&gt; &lt;chr&gt;    </span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 variance 5.13             1 pca_deuzL</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 variance 2.02             2 pca_deuzL</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 variance 1.51             3 pca_deuzL</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 variance 1.44             4 pca_deuzL</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 variance 1.14             5 pca_deuzL</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6 variance 0.645            6 pca_deuzL</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7 variance 0.591            7 pca_deuzL</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8 variance 0.469            8 pca_deuzL</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 variance 0.0602           9 pca_deuzL</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 variance 0.000261        10 pca_deuzL</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ... with 42 more rows</span></span></code></pre></div>
+</div>
+<div id="pca-estimates" class="section level2">
+<h2>PCA Estimates</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_estimates</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data Recipe</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Inputs:</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       role #variables</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    outcome          1</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  predictor          1</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Training data contained 76 data points and no missing data.</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Operations:</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Timeseries signature features from date_col [trained]</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Variables removed date_col_year.iso, date_col_month.xts, ... [trained]</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Centering for value, date_col_index.num, ... [trained]</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scaling for value, date_col_index.num, ... [trained]</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Sparse, unbalanced variable filter removed date_col_day, ... [trained]</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; PCA extraction with date_col_index.num, date_col_year, ... [trained]</span></span></code></pre></div>
+</div>
+<div id="jucied-and-baked-data" class="section level2">
+<h2>Jucied and Baked Data</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_juiced_estimates <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 76</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 9</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col           &lt;dttm&gt; 2018-03-01, 2020-08-01, 2017-12-01, 2015-10-01, 20~</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ value              &lt;dbl&gt; 0.305149153, -1.356838616, -0.000823491, 0.38511927~</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_month.lbl &lt;ord&gt; March, August, December, October, November, Decembe~</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_wday.lbl  &lt;ord&gt; Thursday, Saturday, Friday, Thursday, Wednesday, Tu~</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC1                &lt;dbl&gt; 2.88815748, -0.56941169, -3.24751175, -2.47352658, ~</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC2                &lt;dbl&gt; -1.015794586, -2.319313350, -0.559802115, 1.0726772~</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC3                &lt;dbl&gt; -1.523467249, 0.028258251, -2.016014883, -0.7272953~</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC4                &lt;dbl&gt; 0.39372895, 1.72351394, 0.01768918, -1.16862848, -0~</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC5                &lt;dbl&gt; 0.7367275, -0.9448078, 0.9034308, -0.9429968, -0.61~</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_baked_data <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 95</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 9</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col           &lt;dttm&gt; 2013-01-01, 2013-02-01, 2013-03-01, 2013-04-01, 20~</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ value              &lt;dbl&gt; 1.9184595, 0.6563223, 0.9240484, 1.1639587, 1.73070~</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_month.lbl &lt;ord&gt; January, February, March, April, May, June, July, A~</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ date_col_wday.lbl  &lt;ord&gt; Tuesday, Friday, Friday, Monday, Wednesday, Saturda~</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC1                &lt;dbl&gt; 3.7625319, 3.0954942, 2.9045027, 2.2249651, 1.38488~</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC2                &lt;dbl&gt; 2.590194, 2.152537, 1.910745, 2.547991, 2.218156, 1~</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC3                &lt;dbl&gt; 1.19844108, -0.49337486, -2.01916451, 1.43188816, -~</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC4                &lt;dbl&gt; -0.97076717, 0.67257483, 0.99609414, -0.99801117, -~</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC5                &lt;dbl&gt; -0.15219492, -1.54840667, 0.47164908, 0.28057197, 0~</span></span></code></pre></div>
+</div>
+<div id="roatation-data" class="section level2">
+<h2>Roatation Data</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_rotation_df <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 13</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 13</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC1  &lt;dbl&gt; -0.03217120, 0.01968948, -0.38822955, -0.43492801, -0.43719403, -~</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC2  &lt;dbl&gt; -0.694421233, -0.694509433, -0.002658359, 0.018275720, -0.0106049~</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC3  &lt;dbl&gt; 0.067435828, 0.068483919, 0.194360959, 0.048889978, -0.009062772,~</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC4  &lt;dbl&gt; -0.10236226, -0.11087859, 0.16883438, -0.05345862, 0.06977494, 0.~</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC5  &lt;dbl&gt; 0.003246377, -0.006108173, -0.166537687, -0.049512137, 0.08069837~</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC6  &lt;dbl&gt; -0.004708018, -0.002759762, -0.285242923, -0.140142302, -0.019249~</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC7  &lt;dbl&gt; 0.007740802, 0.007384155, -0.058896369, 0.033971238, 0.004542796,~</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC8  &lt;dbl&gt; 0.03710162, 0.04314412, -0.06656222, 0.01265603, -0.04678856, -0.~</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC9  &lt;dbl&gt; 0.009932605, -0.015647939, -0.816054745, 0.268366674, 0.213903239~</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC10 &lt;dbl&gt; 0.0124013618, -0.0110293023, 0.0058390765, 0.2984999440, 0.368052~</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC11 &lt;dbl&gt; -0.0229852903, 0.0239838979, -0.0010033441, 0.0547968775, 0.61100~</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC12 &lt;dbl&gt; 9.880721e-03, -9.482604e-03, 3.379946e-03, 7.852100e-01, -4.90061~</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC13 &lt;dbl&gt; 7.066619e-01, -7.051896e-01, -8.574273e-05, -3.420034e-02, -1.845~</span></span></code></pre></div>
+</div>
+<div id="variance-and-scree-plot" class="section level2">
+<h2>Variance and Scree Plot</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_variance_df <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 13</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 6</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ PC              &lt;chr&gt; &quot;PC1&quot;, &quot;PC2&quot;, &quot;PC3&quot;, &quot;PC4&quot;, &quot;PC5&quot;, &quot;PC6&quot;, &quot;PC7&quot;, &quot;PC8&quot;~</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ var_explained   &lt;dbl&gt; 3.948735e-01, 1.550608e-01, 1.163611e-01, 1.104024e-01~</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ var_pct_txt     &lt;chr&gt; &quot;39.49%&quot;, &quot;15.51%&quot;, &quot;11.64%&quot;, &quot;11.04%&quot;, &quot;8.75%&quot;, &quot;4.96~</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cum_var_pct     &lt;dbl&gt; 0.3948735, 0.5499343, 0.6662954, 0.7766977, 0.8642145,~</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cum_var_pct_txt &lt;chr&gt; &quot;39.49%&quot;, &quot;54.99%&quot;, &quot;66.63%&quot;, &quot;77.67%&quot;, &quot;86.42%&quot;, &quot;91.~</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ ou_threshold    &lt;fct&gt; Under, Under, Under, Under, Over, Over, Over, Over, Ov~</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pca_list<span class="sc">$</span>pca_variance_scree_plt</span></code></pre></div>
+<p><img src="data:image/png;base64,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cpOMKkByfL9NgHBC75lTei7kJhlRgMPyXp8ian/QJDKl50JuFD4NSkRnDAECQrzLmAK03P/aY519agABsi5CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRIAQAJBqEAIBEgxAAkGgQAgASDbISIPl673Ed6Evf6KVdkF5KrbKunk9ltBpAgKyLrAQIA3092uTiCXrp8Pi2W0X70vUUEACQdyAbAQ5ffdxEx6fsslJ6aa8uqHn6VLoqPgIA8g5kIcDp0+/VlQgfs+tw6qVkC5BfUOc1TvBKiGexECB+n1fXBcwvRJstxfsAn5++X+s5J5rXYePiaDWAAFkXtQsQv9Of6rYA6r5wFa6KOYoQAJB3oHYBwuTqKavKPkC6tNsUuwEIAMg7kPVh0NPzKj8KlC2F8QJbAEA+g7qeB9DXME/OCCRjIfYBAPkM4kwwINGgawjQ7+KM9fH6jwto+iAEACQahACARIMQAJBoEAIAEg1CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRIAQAJBqEAIBEgxAAkGgQAgASDUIAQKJBCABINAgBAIkGIQAg0SAEACQahACARIMQAJBoEAIAEg1CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRIAQAJBqEAIBEgxAAkGgQAgASDUIAQKJBCABINAgBAIkGIQAg0SAEACQahACARIMQAJBoEAIAEg1CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRoFEFeE3TUYBXQm4WtgCARIMQAJBoEAIAEg1CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRIAQAJBqEAIBEgxAAkGgQAgASDUIAQKJBCABINAgBAIkGIQAg0SAEACQahACARIMQAJBoEAIAEg1CAECiQQgASDQIAQCJBiEAINEgBAAkGoQAgESDEACQaBACABINQgBAokEIAEg0CAEAiQYhACDRIAQAJBqEAIBEgxAAkGgQAgASDUIAQKJBCABINAgBAIkGIQAg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" /><!-- --></p>
+</div>
+</div>
 
 
 

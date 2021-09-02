@@ -4,14 +4,18 @@
 # healthyR.ai <img src="man/figures/test3.png" width="147" height="170" align="right" />
 
 <!-- badges: start -->
-<!-- [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/healthyR.ai)](https://cran.r-project.org/package=healthyR.ai) -->
-<!-- ![](https://cranlogs.r-pkg.org/badges/healthyR.ai) -->
-<!-- ![](https://cranlogs.r-pkg.org/badges/grand-total/healthyR.ai) -->
-<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) -->
-<!-- [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) -->
+
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/healthyR.ai)](https://cran.r-project.org/package=healthyR.ai)
+![](https://cranlogs.r-pkg.org/badges/healthyR.ai)
+![](https://cranlogs.r-pkg.org/badges/grand-total/healthyR.ai)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![PRs
+Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 <!-- badges: end -->
 
-The goal of healthyR.ai is to …
+The goal of healthyR.ai is to create a verb framework that allows for
+easy exploration, transformation and modeling of data.
 
 ## Installation
 
