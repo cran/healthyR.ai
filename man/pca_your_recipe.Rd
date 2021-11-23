@@ -77,6 +77,13 @@ output_list$pca_variance_scree_plt
 
 Other Data Wrangling: 
 \code{\link{get_juiced_data}()}
+
+Other Data Recipes: 
+\code{\link{hai_data_impute}()},
+\code{\link{hai_data_poly}()},
+\code{\link{hai_data_scale}()},
+\code{\link{hai_data_transform}()},
+\code{\link{hai_data_trig}()}
 }
 \author{
 Steven P. Sanderson II, MPH

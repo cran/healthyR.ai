@@ -1,3 +1,23 @@
+# healthyR.ai 0.0.3
+
+## Breaking Changes
+None
+
+## New Features
+1. Fix #61 - Add internal function `hai_data_scale()`
+2. Fix #63 - Add internal function `hai_data_impute()`
+3. Fix #58 - Add internal function `hai_data_trig()`, Exported Func `step_hai_hyperbolic()`
+4. Fix #68 - Add `hai_hyperbolic_vec()` function.
+5. Fix #70 - Add `hai_hyperbolic_augment()` function.
+6. Fix #75 - Add `hai_fourier_vec()`,`hai_fourier_augment()`,`step_hai_fourier()` functions.
+7. Fix #89 - Add `hai_fourier_discrete_vec()`, `hai_fourier_discrete_augment()`, `step_hai_fourier_discrete()`
+8. Fix #57 - Add `hai_polynomial_augment()`
+9. Fix #60 - Add internal function `hai_data_transform()`
+10. Fix #93 - Add internal function `hai_data_poly()`
+
+## Minor Fixes and Improvments
+1. Fix #81 - Add process to register s3 methods to work with `tune` objects.
+
 # healthyR.ai 0.0.2
 
 ## Breaking Changes
