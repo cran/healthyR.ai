@@ -15,6 +15,7 @@ suppressPackageStartupMessages(library(healthyR.data))
 suppressPackageStartupMessages(library(rsample))
 suppressPackageStartupMessages(library(recipes))
 suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(plotly))
 
 ## ----data_set-----------------------------------------------------------------
 data_tbl <- healthyR_data %>%
@@ -53,7 +54,8 @@ get_juiced_data(rec_obj) %>% glimpse()
 pca_list <- pca_your_recipe(
   .recipe_object = rec_obj,
   .data          = data_tbl,
-  .threshold     = 0.8
+  .threshold     = 0.8,
+  .top_n         = 5
 )
 
 ## ----pca_transform------------------------------------------------------------
@@ -83,4 +85,9 @@ pca_list$pca_variance_df %>% glimpse()
 
 ## ----scree_plt, fig.width=8, fig.height=8-------------------------------------
 pca_list$pca_variance_scree_plt
+
+## ----loading_plots------------------------------------------------------------
+pca_list$pca_loadings_plt
+
+pca_list$pca_top_n_loadings_plt
 

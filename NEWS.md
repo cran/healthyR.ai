@@ -1,7 +1,29 @@
-# healthyR.ai 0.0.5
+# healthyR.ai 0.0.6
+
+## New Features
+1. Fix #132 - Add functions:
+-  `hai_kurtosis_vec()`
+-  `hai_skewness_vec()`
+2. Fix #133 - Add function `hai_distribution_comparison_tbl()`
+3. Fix #138 - Add function `hai_get_dist_data_tbl()`
+4. Fix #140 - Add function `hai_get_density_data_tbl()`
+5. Fix #146 - Add function `hai_density_plot()`
+6. Fix #141 - Add function `hai_density_qq_plot()`
+7. Fix #139 - Add function `hai_density_hist_plot()`
+8. Fix #56 - Add function `hai_histogram_facet_plot()`
+9. Fix #178 - Add loadings plots to `pca_your_recipe()` output. Added a parameter
+of `.top_n` to get how many vairable loadings you want returned.
+
+## Minor Fixes and Improvements
+1. Fix #180 - Move `cli` and `crayon` to Imports from Suggest due to `pillar` 
+not importing anymore.
+2. Fix #182 - Drop need for `cli`, `crayon`, and `rstudioapi`
+3. Fix #187 - Update step print methods as described by the tidymodels team.
 
 ## Breaking Changes
 None
+
+# healthyR.ai 0.0.5
 
 ## New Features
 1. Fix #118 - Add functions:
