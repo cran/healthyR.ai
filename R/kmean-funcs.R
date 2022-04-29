@@ -249,7 +249,7 @@ hai_kmeans_tidy_tbl <- function(.kmeans_obj, .data, .tidy_type = "tidy") {
         stop(call. = FALSE, "(.user_item_data) is not a data.frame/tibble, please supply original user item tibble.")
     }
 
-    if (!class(kmeans_obj) == "kmeans") {
+    if (!inherits(x = kmeans_obj, what = "kmeans")) {
         stop(call. = FALSE, "(.kmeans_obj) is not of class 'kmeans'")
     }
 
@@ -441,7 +441,6 @@ hai_kmeans_scree_data_tbl <- function(.data) {
 #' @examples
 #' library(healthyR.data)
 #' library(dplyr)
-#' library(tidyquant)
 #'
 #' data_tbl <- healthyR_data%>%
 #'    filter(ip_op_flag == "I") %>%
@@ -498,7 +497,7 @@ hai_kmeans_scree_plt <- function(.data){
             mapping = ggplot2::aes(
                 label = centers
             )) +
-        tidyquant::theme_tq() +
+        ggplot2::theme_minimal() +
         ggplot2::labs(
             title      = "Scree Plot"
             , subtitle = "Measures the distance each of the users are from the closest k-means cluster"
