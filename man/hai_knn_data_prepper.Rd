@@ -29,6 +29,8 @@ algorithm. It expects data to be presented in a certain fashion.
 This function will output a recipe specification.
 }
 \examples{
+library(ggplot2)
+
 hai_knn_data_prepper(.data = Titanic, .recipe_formula = Survived ~ .)
 rec_obj <- hai_knn_data_prepper(iris, Species ~ .)
 get_juiced_data(rec_obj)
@@ -36,11 +38,22 @@ get_juiced_data(rec_obj)
 }
 \seealso{
 Other Preprocessor: 
+\code{\link{hai_c50_data_prepper}()},
+\code{\link{hai_cubist_data_prepper}()},
 \code{\link{hai_data_impute}()},
 \code{\link{hai_data_poly}()},
 \code{\link{hai_data_scale}()},
 \code{\link{hai_data_transform}()},
-\code{\link{hai_data_trig}()}
+\code{\link{hai_data_trig}()},
+\code{\link{hai_earth_data_prepper}()},
+\code{\link{hai_glmnet_data_prepper}()},
+\code{\link{hai_ranger_data_prepper}()},
+\code{\link{hai_svm_poly_data_prepper}()},
+\code{\link{hai_svm_rbf_data_prepper}()},
+\code{\link{hai_xgboost_data_prepper}()}
+
+Other knn: 
+\code{\link{hai_glmnet_data_prepper}()}
 }
 \author{
 Steven P. Sanderson II, MPH

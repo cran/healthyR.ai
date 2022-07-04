@@ -1,3 +1,34 @@
+# healthyR.ai 0.0.8
+
+## Breaking Changes
+None
+
+## New Features
+1. Fix #219 - Add functions `color_blind()` `hai_scale_color_colorblind()` and
+`hai_scale_fill_colorblind()`
+2. Fix #227 - Add function `hai_auto_wflw_metrics()`
+3. Fix #243 - Add boilerplate functions for C5.0 `hai_c50_data_prepper()` and
+`hai_auto_c50()`
+4. Fix #246 - Add boilerplate functions for glmnet `hai_glmnet_data_prepper()` and
+`hai_auto_glmnet()`
+5. Fix #249 - Add boilerplate functions for cubist `hai_cubist_data_prepper()` and
+`hai_auto_cubist()`
+6. Fix #256 - Add boilerplate functions for Earth `hai_earth_data_prepper()` and
+`hai_auto_earth()`
+7. Fix #259 - Add boilerplate functions for Kernlab `hai_svm_poly_data_prepper()` and
+`hai_auto_svm_poly()`
+8. Fix #265 - Add boilerplate functions for Kernlab `hai_svm_rbf_data_prepper()` and
+`hai_auto_svm_rbf()`
+9. Fix #269 - Add boilerplate functions for ranger `hai_ranger_data_prepper()` and
+`hai_auto_ranger()`
+10. Fix #274 - Add boilerplate functions for xgboost `hai_xgboost_data_prepper()` and
+`hai_auto_xgboost()`
+
+## Minor Fixes and Improvements
+1. Fix #240 - Add parameter arguments as attributes to list output for boilerplate
+functions.
+2. Fix #273 - We fixed a bug 🐛 in step_hyperbolic() in tidymodels/recipes#932 and this PR updates healthyR.ai to reflect that fix. Thank you @juliasilge
+
 # healthyR.ai 0.0.7
 
 ## Breaking Changes

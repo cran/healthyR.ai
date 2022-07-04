@@ -20,7 +20,7 @@ hai_auto_knn(
 \item{.data}{The data being passed to the function. The time-series object.}
 
 \item{.rec_obj}{This is the recipe object you want to use. You can use
-\code{hai_knn_data_prepper()} and an automatic recipe_object.}
+\code{hai_knn_data_prepper()} an automatic recipe_object.}
 
 \item{.splits_obj}{NULL is the default, when NULL then one will be created.}
 
@@ -72,6 +72,18 @@ auto_knn <- hai_auto_knn(
 auto_knn$recipe_info
 }
 
+}
+\seealso{
+Other Boiler_Plate: 
+\code{\link{hai_auto_c50}()},
+\code{\link{hai_auto_cubist}()},
+\code{\link{hai_auto_earth}()},
+\code{\link{hai_auto_glmnet}()},
+\code{\link{hai_auto_ranger}()},
+\code{\link{hai_auto_svm_poly}()},
+\code{\link{hai_auto_svm_rbf}()},
+\code{\link{hai_auto_wflw_metrics}()},
+\code{\link{hai_auto_xgboost}()}
 }
 \author{
 Steven P. Sanderson II, MPH
