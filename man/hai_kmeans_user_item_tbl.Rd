@@ -2,9 +2,12 @@
 % Please edit documentation in R/kmean-funcs.R
 \name{hai_kmeans_user_item_tbl}
 \alias{hai_kmeans_user_item_tbl}
+\alias{kmeans_user_item_tbl}
 \title{K-Means User Item Tibble}
 \usage{
 hai_kmeans_user_item_tbl(.data, .row_input, .col_input, .record_input)
+
+kmeans_user_item_tbl(.data, .row_input, .col_input, .record_input)
 }
 \arguments{
 \item{.data}{The data that you want to transform}
@@ -34,19 +37,19 @@ can be summed for the aggregation and normalization process to occur.
 library(healthyR.data)
 library(dplyr)
 
-data_tbl <- healthyR_data\%>\%
-   filter(ip_op_flag == "I") \%>\%
-   filter(payer_grouping != "Medicare B") \%>\%
-   filter(payer_grouping != "?") \%>\%
-   select(service_line, payer_grouping) \%>\%
-   mutate(record = 1) \%>\%
-   as_tibble()
+data_tbl <- healthyR_data \%>\%
+  filter(ip_op_flag == "I") \%>\%
+  filter(payer_grouping != "Medicare B") \%>\%
+  filter(payer_grouping != "?") \%>\%
+  select(service_line, payer_grouping) \%>\%
+  mutate(record = 1) \%>\%
+  as_tibble()
 
 hai_kmeans_user_item_tbl(
-   .data           = data_tbl
-   , .row_input    = service_line
-   , .col_input    =  payer_grouping
-   , .record_input = record
+  .data = data_tbl,
+  .row_input = service_line,
+  .col_input = payer_grouping,
+  .record_input = record
 )
 
 }

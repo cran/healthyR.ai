@@ -2,9 +2,12 @@
 % Please edit documentation in R/kmean-funcs.R
 \name{hai_kmeans_obj}
 \alias{hai_kmeans_obj}
+\alias{kmeans_obj}
 \title{K-Means Object}
 \usage{
 hai_kmeans_obj(.data, .centers = 5)
+
+kmeans_obj(.data, .centers = 5)
 }
 \arguments{
 \item{.data}{The data that gets passed from \code{\link[=hai_kmeans_user_item_tbl]{hai_kmeans_user_item_tbl()}}}
@@ -25,21 +28,21 @@ Uses the \code{\link[stats:kmeans]{stats::kmeans()}} function and creates a wrap
 library(healthyR.data)
 library(dplyr)
 
-data_tbl <- healthyR_data\%>\%
-   filter(ip_op_flag == "I") \%>\%
-   filter(payer_grouping != "Medicare B") \%>\%
-   filter(payer_grouping != "?") \%>\%
-   select(service_line, payer_grouping) \%>\%
-   mutate(record = 1) \%>\%
-   as_tibble()
+data_tbl <- healthyR_data \%>\%
+  filter(ip_op_flag == "I") \%>\%
+  filter(payer_grouping != "Medicare B") \%>\%
+  filter(payer_grouping != "?") \%>\%
+  select(service_line, payer_grouping) \%>\%
+  mutate(record = 1) \%>\%
+  as_tibble()
 
 hai_kmeans_user_item_tbl(
-   .data           = data_tbl
-   , .row_input    = service_line
-   , .col_input    =  payer_grouping
-   , .record_input = record
- ) \%>\%
- hai_kmeans_obj()
+  .data = data_tbl,
+  .row_input = service_line,
+  .col_input = payer_grouping,
+  .record_input = record
+) \%>\%
+  hai_kmeans_obj()
 
 }
 \seealso{

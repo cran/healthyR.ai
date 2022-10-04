@@ -2,9 +2,12 @@
 % Please edit documentation in R/kmean-funcs.R
 \name{hai_kmeans_scree_data_tbl}
 \alias{hai_kmeans_scree_data_tbl}
+\alias{kmeans_scree_data_tbl}
 \title{K-Means Scree Plot Data Table}
 \usage{
 hai_kmeans_scree_data_tbl(.data)
+
+kmeans_scree_data_tbl(.data)
 }
 \arguments{
 \item{.data}{You must have a tibble in the working environment from the
@@ -26,20 +29,20 @@ show the values (tot.withinss) at each center.
 library(healthyR.data)
 library(dplyr)
 
-data_tbl <- healthyR_data\%>\%
-   filter(ip_op_flag == "I") \%>\%
-   filter(payer_grouping != "Medicare B") \%>\%
-   filter(payer_grouping != "?") \%>\%
-   select(service_line, payer_grouping) \%>\%
-   mutate(record = 1) \%>\%
-   as_tibble()
+data_tbl <- healthyR_data \%>\%
+  filter(ip_op_flag == "I") \%>\%
+  filter(payer_grouping != "Medicare B") \%>\%
+  filter(payer_grouping != "?") \%>\%
+  select(service_line, payer_grouping) \%>\%
+  mutate(record = 1) \%>\%
+  as_tibble()
 
-ui_tbl <-  hai_kmeans_user_item_tbl(
-   .data           = data_tbl
-   , .row_input    = service_line
-   , .col_input    =  payer_grouping
-   , .record_input = record
- )
+ui_tbl <- hai_kmeans_user_item_tbl(
+  .data = data_tbl,
+  .row_input = service_line,
+  .col_input = payer_grouping,
+  .record_input = record
+)
 
 kmm_tbl <- hai_kmeans_mapped_tbl(ui_tbl)
 
