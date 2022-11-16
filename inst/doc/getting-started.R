@@ -7,15 +7,15 @@ knitr::opts_chunk$set(
 ## ----setup--------------------------------------------------------------------
 library(healthyR.ai)
 
-## ----lib_load-----------------------------------------------------------------
-suppressPackageStartupMessages(library(timetk))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(purrr))
-suppressPackageStartupMessages(library(healthyR.data))
-suppressPackageStartupMessages(library(rsample))
-suppressPackageStartupMessages(library(recipes))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(plotly))
+## ----lib_load, warning=FALSE, message=FALSE-----------------------------------
+library(timetk)
+library(dplyr)
+library(purrr)
+library(healthyR.data)
+library(rsample)
+library(recipes)
+library(ggplot2)
+library(plotly)
 
 ## ----data_set-----------------------------------------------------------------
 data_tbl <- healthyR_data %>%
@@ -30,7 +30,8 @@ data_tbl <- healthyR_data %>%
         .date_var = date_col,
         .start_date = "2013",
         .end_date = "2020"
-    )
+    ) %>%
+    mutate(date_col = as.Date(date_col))
 
 head(data_tbl)
 

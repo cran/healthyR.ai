@@ -1,3 +1,14 @@
+# healthyR.ai 0.0.10
+
+## Breaking Changes
+None
+
+## New Features
+1. Fix #303 - Export data processing functions to be exposed as function insted of internally only. This means you no longer need to use `healthyR.ai:::` to access the functions.
+
+## Minor Fixes and Improvements
+1, Fix #306 - Fix failing custom recipe steps due to type checks
+
 # healthyR.ai 0.0.9
 
 ## Breaking Changes
