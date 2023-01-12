@@ -1,3 +1,15 @@
+# healthyR.ai 0.0.11
+
+## Breaking Changes
+None
+
+## New Features
+None
+
+## Minor Fixes and Improvements
+1. Fix #312 - Fix a typo in `hai_kmeans_automl()` that caused the function to fail 
+before any modeling even occurred.
+
 # healthyR.ai 0.0.10
 
 ## Breaking Changes
