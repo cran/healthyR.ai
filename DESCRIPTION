@@ -1,6 +1,6 @@
 Package: healthyR.ai
 Title: The Machine Learning and AI Modeling Companion to 'healthyR'
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Steven","Sanderson", email = "spsanderson@gmail.com", role = c("aut","cre","cph"),
       comment = c(ORCID = "0009-0006-7661-8247")
@@ -27,9 +27,9 @@ Suggests: rmarkdown, knitr, healthyR.data, scales, tidyselect, janitor,
 VignetteBuilder: knitr
 Depends: R (>= 3.3)
 NeedsCompilation: no
-Packaged: 2024-09-11 01:54:42 UTC; steve
+Packaged: 2025-04-23 01:24:08 UTC; steve
 Author: Steven Sanderson [aut, cre, cph]
     (<https://orcid.org/0009-0006-7661-8247>)
 Maintainer: Steven Sanderson <spsanderson@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-09-11 06:50:02 UTC
+Date/Publication: 2025-04-24 11:40:17 UTC

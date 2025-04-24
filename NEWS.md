@@ -1,3 +1,13 @@
+# healthyR.ai 0.1.1
+
+## Breaking Changes
+None
+
+## New Features
+None
+
+## Minor Fixes and Improvements
+- Fix #349 - Update `hai_c50_data_prepper()` from @EmilHvitfeldt
 # healthyR.ai 0.1.0
 
 ## Breaking Changes
